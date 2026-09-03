@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Approval Purchase Request</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-6 min-h-screen">
+  
+  <!-- Overlay Login Password -->
+  <div id="loginOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center space-y-4">
+      <h3 class="font-bold text-lg text-slate-800">Akses Kepala Purchasing</h3>
+      <input type="password" id="passInput" placeholder="Masukkan Password" class="w-full border rounded-lg p-2.5 text-center text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      <button onclick="checkPassword()" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700">Masuk Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Table -->
+  <div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-slate-800">Dashboard Approval Purchase Request</h1>
+      <button onclick="loadDashboard()" class="bg-slate-200 text-slate-700 text-sm px-4 py-2 rounded-lg hover:bg-slate-300 font-semibold">Refresh Data</button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-100 text-xs font-semibold text-slate-600 uppercase border-b border-slate-200">
+          <tr>
+            <th class="p-4">Waktu</th>
+            <th class="p-4">PIC</th>
+            <th class="p-4">Barang & Qty</th>
+            <th class="p-4">Spesifikasi</th>
+            <th class="p-4">Link</th>
+            <th class="p-4">Status</th>
+            <th class="p-4">Catatan</th>
+            <th class="p-4 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="approvalTable" class="text-sm divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cvhetsfucpsfeajhimpb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_w9faH5jFhjAlPyqv2xHOtg_znZZ6vjW';
+    const ACCESS_PASSWORD = '121212'; // Silakan ganti password ini
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function checkPassword() {
+      const input = document.getElementById('passInput').value;
+      if (input === ACCESS_PASSWORD) {
+        document.getElementById('loginOverlay').classList.add('hidden');
+        loadDashboard();
+      } else {
+        alert('Password salah!');
+      }
+    }
+
+    async function loadDashboard() {
+      const { data, error } = await supabaseClient
+        .from('purchase_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) return alert('Gagal memuat data: ' + error.message);
+
+      const tbody = document.getElementById('approvalTable');
+      tbody.innerHTML = '';
+
+      data.forEach(item => {
+        const date = new Date(item.created_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+        const isPending = item.status === 'Pending';
+        
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50">
+            <td class="p-4 text-xs text-slate-500 whitespace-nowrap">${date} WIB</td>
+            <td class="p-4 font-semibold text-slate-700">${item.pic_pemesan}</td>
+            <td class="p-4 font-semibold text-slate-800">${item.nama_barang} <span class="text-xs text-slate-500">(${item.qty} ${item.satuan})</span></td>
+            <td class="p-4 text-xs text-slate-600 max-w-xs">${item.spesifikasi}</td>
+            <td class="p-4">${item.link_produk ? `<a href="${item.link_produk}" target="_blank" class="text-blue-600 underline text-xs">Link Toko</a>` : '-'}</td>
+            <td class="p-4">
+              <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${
+                item.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                item.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+              }">${item.status}</span>
+            </td>
+            <td class="p-4">
+              <input type="text" id="note-${item.id}" value="${item.catatan_approval || ''}" placeholder="Tambah catatan..." class="border text-xs rounded p-1.5 w-full outline-none focus:border-blue-500">
+            </td>
+            <td class="p-4 text-center whitespace-nowrap">
+              ${isPending ? `
+                <button onclick="updateStatus('${item.id}', 'Approved')" class="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-green-700 font-semibold mr-1">Approve</button>
+                <button onclick="updateStatus('${item.id}', 'Rejected')" class="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-red-700 font-semibold">Reject</button>
+              ` : `<span class="text-xs text-slate-400 font-medium">Selesai</span>`}
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function updateStatus(id, newStatus) {
+      const note = document.getElementById(`note-${id}`).value;
+      const { error } = await supabaseClient
+        .from('purchase_requests')
+        .update({ status: newStatus, catatan_approval: note })
+        .eq('id', id);
+
+      if (error) alert('Gagal memperbarui status: ' + error.message);
+      else loadDashboard();
+    }
+  </script>
+</body>
+</html>
