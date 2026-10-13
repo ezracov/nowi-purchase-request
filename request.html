@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pengajuan Purchase Request</title>
+  <title>Purchase Request Non MRP</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-100 p-4 max-w-md mx-auto min-h-screen pb-12">
-  <h2 class="text-xl font-bold mb-4 text-slate-800 text-center">Form Pengajuan PR</h2>
+  <h2 class="text-xl font-bold mb-4 text-slate-800 text-center">Form Pengajuan PR Non MRP</h2>
   
   <!-- Form Input -->
   <form id="prForm" class="bg-white p-4 rounded-xl shadow-sm space-y-3 mb-6">
@@ -48,8 +48,8 @@
   <div id="requestList" class="space-y-3"></div>
 
 <script>
-  const SUPABASE_URL = 'https://cvhetsfucpsfeajhimpb.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_w9faH5jFhjAlPyqv2xHOtg_znZZ6vjW';
+  const SUPABASE_URL = 'https://ndfeuudfiuqhasxjszfs.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_Yl8OT1nfLTYqnErcBQrH_A_Tb97jmj_';
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // Submit Data
@@ -64,7 +64,7 @@
       link_produk: document.getElementById('link_produk').value || null
     };
 
-    const { error } = await supabaseClient.from('purchase_requests').insert([payload]);
+    const { error } = await supabaseClient.from('purchase_requestsnonmrp').insert([payload]);
     if (error) alert('Gagal mengirim pengajuan: ' + error.message);
     else {
       document.getElementById('prForm').reset();
@@ -75,7 +75,7 @@
   // Load Data
   async function loadRequests() {
     const { data, error } = await supabaseClient
-      .from('purchase_requests')
+      .from('purchase_requestsnonmrp')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -131,7 +131,7 @@
     if (confirm('Konfirmasi bahwa barang ini telah Anda terima?')) {
       const currentTimestamp = new Date().toISOString();
       const { error } = await supabaseClient
-        .from('purchase_requests')
+        .from('purchase_requestsnonmrp')
         .update({ 
           status: 'Diterima', 
           diterima_at: currentTimestamp 
@@ -146,7 +146,7 @@
   // Delete Data
   async function deleteRequest(id) {
     if (confirm('Yakin ingin menghapus pengajuan ini?')) {
-      const { error } = await supabaseClient.from('purchase_requests').delete().eq('id', id);
+      const { error } = await supabaseClient.from('purchase_requestsnonmrp').delete().eq('id', id);
       if (error) alert('Gagal menghapus: ' + error.message);
       else loadRequests();
     }
