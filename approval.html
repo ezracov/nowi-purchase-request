@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Approval Purchase Request</title>
+  <title>Approval Purchase Request Non MRP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -45,8 +45,8 @@
   </div>
 
 <script>
-  const SUPABASE_URL = 'https://cvhetsfucpsfeajhimpb.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_w9faH5jFhjAlPyqv2xHOtg_znZZ6vjW';
+  const SUPABASE_URL = 'https://ndfeuudfiuqhasxjszfs.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_Yl8OT1nfLTYqnErcBQrH_A_Tb97jmj_';
   const ACCESS_PASSWORD = '121212';
   
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -63,7 +63,7 @@
 
   async function loadDashboard() {
     const { data, error } = await supabaseClient
-      .from('purchase_requests')
+      .from('purchase_requestsnonmrp')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -113,7 +113,7 @@
   async function updateStatus(id, newStatus) {
     const note = document.getElementById(`note-${id}`).value;
     const { error } = await supabaseClient
-      .from('purchase_requests')
+      .from('purchase_requestsnonmrp')
       .update({ status: newStatus, catatan_approval: note })
       .eq('id', id);
 
